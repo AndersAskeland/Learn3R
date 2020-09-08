@@ -1,14 +1,116 @@
 ---
-title: "Draft R Markdown document"
-author: "Your Name"
+title: "Lesson"
+author: "Anders"
 output: html_document
 ---
 
+# 1. Importing my data usring vroom
+As I understand vroom is just an automated readr. 
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(vroom)
+library(here)
+library(dplyr)
 ```
 
+This is a example of how to do it. We first create a reference to the dir, look at the data using spec, and import is using vroom. We manually specify the different column types.
+
 ```{r}
-# Code chunk
+# Data dir
+user_1_info_file <- here("data-raw/mmash/user_1/user_info.csv")
+
+# Load data first
+vroom(user_1_info_file) %>%
+  spec()
+
+# Read data
+user_1_info_data <- vroom(user_1_info_file,
+                          col_select = -1,
+                          col_types = cols(
+                            Gender = col_character(),
+                            Weight = col_double(),
+                            Height = col_double(),
+                            Age = col_double()),
+                          .name_repair = snakecase::to_snake_case)
+
+user_1_info_data
 ```
+
+
+## Exercise: Import the saliva data
+Same as above
+```{r}
+# Data dir
+user_1_saliva_file <- here("data-raw/mmash/user_1/saliva.csv")
+
+# look at data structure
+vroom(user_1_saliva_file) %>%
+  spec()
+
+# Create final data
+user_1_saliva_data <- vroom(user_1_saliva_file,
+                                 col_select = -1,
+                                 col_types = cols(
+                                   SAMPLES = col_character(),
+                                   `Cortisol NORM` = col_double(),
+                                   `Melatonin NORM` = col_double()),
+                            .name_repair = snakecase::to_snake_case)
+user_1_saliva_data
+```
+
+# 2 - Import larger datasets
+If you have a very big dataset, a good idea could be to read in a few lines (100) using spec() and look at this data prior to attempting to import a larger dataset.
+
+
+```{r}
+# User dir
+user_1_rr_file <- here(("data-raw/mmash/user_1/RR.csv"))
+
+# Find column types
+vroom(user_1_rr_file, n_max = 100) %>%
+  spec()
+
+# Import data
+user_1_rr_data <- vroom(file = user_1_rr_file,
+                        col_select = -1,
+                        col_types = 
+                          cols(
+                              ibi_s = col_double(),
+                              day = col_double(),
+                              time = col_time(format = "")
+                              ),
+                        .name_repair = snakecase::to_snake_case)
+user_1_rr_data
+```
+## Exercise: Import the Actigraph data.
+```{r}
+# User dir
+user_1_Actigraph_file <- here(("data-raw/mmash/user_1/Actigraph.csv"))
+
+# Find column types
+vroom(user_1_Actigraph_file, n_max = 100) %>%
+  spec()
+
+# Import data
+user_1_Actigraph_data <- vroom(file = user_1_Actigraph_file,
+                        col_select = -1,
+                        col_types = 
+                          cols(
+  Axis1 = col_double(),
+  Axis2 = col_double(),
+  Axis3 = col_double(),
+  Steps = col_double(),
+  HR = col_double(),
+  `Inclinometer Off` = col_double(),
+  `Inclinometer Standing` = col_double(),
+  `Inclinometer Sitting` = col_double(),
+  `Inclinometer Lying` = col_double(),
+  `Vector Magnitude` = col_double(),
+  day = col_double(),
+  time = col_time(format = "")
+                          ),
+                        .name_repair = snakecase::to_snake_case)
+user_1_Actigraph_data
+```
+
 

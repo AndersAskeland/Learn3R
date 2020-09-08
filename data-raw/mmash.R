@@ -22,14 +22,10 @@ unzip(here("data-raw/mmash-data.zip"),
       junkpaths = T)
 
 unzip(here("data-raw/MMASH.zip"),
-      exdir = here("data-raw/mmash"),
-      junkpaths = T)
-
+      exdir = here("data-raw/"))
 
 # Delete uneeded files
 file_delete(here(c("data-raw/MMASH.zip", "data-raw/mmash-data.zip", "data-raw/LICENSE.txt")))
 
-
-# Read data
-readr::read_csv("data-raw/mmash-data.zip")
-
+# Rename data file
+file_move(here("data-raw/mmash/"), here("data-raw/mmash/"))
