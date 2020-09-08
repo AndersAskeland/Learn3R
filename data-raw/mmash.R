@@ -12,3 +12,16 @@ download.file(mmash_link, destfile = here("data-raw/mmash-data.zip"))
 
 # Add data to gitignore
 usethis::use_git_ignore(("data-raw/mmash-data.zip"))
+
+
+# Unzip
+unzip(here("data-raw/mmash-data.zip"),
+      exdir = here('data-raw/'),
+      junkpaths = T)
+
+unzip(here("data-raw/MMASH.zip"),
+      exdir = here("data-raw/"),
+      junkpaths = T)
+
+# Read data
+readr::read_csv("data-raw/mmash-data.zip")
