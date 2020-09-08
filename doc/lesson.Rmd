@@ -113,4 +113,15 @@ user_1_Actigraph_data <- vroom(file = user_1_Actigraph_file,
 user_1_Actigraph_data
 ```
 
+# 3 - Functions
+
+```{r making a function}
+add_numbers <- function(num1, num2){
+  return(num1 + num2)
+}
+```
+
+```{r}
+
+```
 
