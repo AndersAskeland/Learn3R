@@ -45,4 +45,25 @@ mmash %>%
   pivot_longer(c(-user_id, -day, -gender))
 ```
 
+Use pivot_longer() after the group_by() and summarise() we did previously:
+```{r}
+# Data
+mmash %>% 
+    group_by(day) %>% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    ))
+
+# Pivot
+mmash %>% 
+    group_by(day) %>% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    )) %>%
+  pivot_longer(ends_with(c("mean", "sd")))
+```
 
