@@ -128,7 +128,8 @@ user_info_files <- dir_ls(here("data-raw/mmash/"),
                           regexp = "user_info.csv", 
                           recurse = TRUE)
 # Function
-user_info_df <- map_dfr(user_info_files, import_user_info, .id = "file_path_id")
+user_info_df <- map_dfr(user_info_files, import_user_info, .id = "file_path_id") %>%
+  extract_user_id()
 ```
 
 Data is loaded using a function
@@ -163,5 +164,99 @@ user_info_df %>%
 
 # Do using function
 extract_user_id(df = user_info_df)
+```
+
+
+# Join datasets
+
+```{r}
+full_join(user_info_df, saliva_df, by = "user_id")
+```
+
+# We can add multiple columns using reduce
+Full code
+first <- add_numbers(1,2)
+second <- add_numbers(first,3)
+third <- add_numbers(second,4)
+forth <- add_numbers(thir, 5)
+
+Using reduce
+reduce(1:4, add_numbers)
+
+```{r}
+combined_data <- reduce(list(user_info_df, saliva_df, actigraph_df, rr_df), full_join, by = "user_id")
+```
+```{r}
+# Only age
+user_info_df %>% 
+  select(age)
+
+# All characters
+user_info_df %>% 
+  select(where(is.character))
+
+# Summarize stuff
+saliva_df %>% summarise(cortisol_mean = mean(cortisol_norm))
+
+saliva_df %>% 
+  summarise(cortisol_mean = mean(cortisol_norm),
+            melatonin_mean = mean(melatonin_norm))
+
+# Use of across function
+saliva_df %>%
+  summarise(across(c(cortisol_norm, melatonin_norm), list(mean = mean), na.rm = T)) 
+
+saliva_df %>% 
+  summarise(across(where(is.numeric), list(mean, sd)))
+  
+# Group by
+rr_df %>% 
+  group_by(user_id, day) %>% # we group by two varibles
+  summarise(across(ibi_s, list(missing = ~sum(is.na(.x)), mean = mean, sd = sd), na.rm = T), .groups = "drop_last")
+
+# You can also drop the error with dplyr.summraise.inform
+options(dplyr.summarise.inform = F)
+```
+Lets combine stuff
+```{r}
+summarised_rr_df <- rr_df %>% 
+  group_by(user_id, day) %>% # we group by two varibles
+  summarise(across(ibi_s, list(mean = mean, sd = sd), na.rm = T), .groups = "drop_last")
+
+```
+
+Combine datasets
+```{r}
+reduce(list(user_info_df, saliva_df, summarised_rr_df), full_join, by = "user_id")
+
+user_info_df %>% mutate(age_category = case_when(age > 20 ~ "old",
+                                                 age <= 20 ~ "young",
+                                                 TRUE ~ NA_character_)) # Avoid mixing of characters with numeric)
+
+
+saliva_with_day_df <- saliva_df %>% 
+  mutate(day = case_when(
+    samples == "before sleep" ~ 1,
+    samples == "wake up" ~ 2,
+    TRUE ~ NA_real_))
+
+reduce(list(user_info_df, saliva_with_day_df, summarised_rr_df), full_join)
+
+
+```
+
+# Exersise
+
+
+```{r sumarised and join arcigraph}
+# Summarise hr and steps
+summarised_actigraph_df <- actigraph_df %>% 
+  group_by(user_id, day) %>% # we group by two varibles
+  summarise(across(c(hr, steps), list(mean = mean, sd = sd, max = max()), na.rm = T), .groups = "drop_last")
+summarised_actigraph_df
+
+# Combine data
+reduce(list(actigraph_df, summarised_actigraph_df), full_join)
+
 ```
 
