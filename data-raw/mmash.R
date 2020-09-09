@@ -1,4 +1,3 @@
-
 # load packages
 library(here) # Point to wd
 library(fs) # Delete stuff
