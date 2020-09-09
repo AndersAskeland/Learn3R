@@ -260,3 +260,68 @@ reduce(list(actigraph_df, summarised_actigraph_df), full_join)
 
 ```
 
+## Exercise: Importing activitiy data
+```{r}
+# Find and look at data
+### Data dir
+activity_dir <- here("data-raw/mmash/user_1/Activity.csv")
+
+### Load data first
+vroom(activity_dir) %>%
+  spec()
+
+# Extract data using function
+activity_df <- import_multiple_files_new("Activity")
+
+# Look at data
+head(activity_df)
+colnames(activity_df)
+
+# Summarise hr and steps
+activity_df <- activity_df %>% 
+  mutate(activity_seconds = (end-start), .keep = "all")
+
+activity_df %>% 
+  group_by(activity, user_id)
+
+
+
+
+
+
+
+
+summarised_actigraph_df <- actigraph_df %>% 
+  group_by(user_id, day) %>% # we group by two varibles
+  summarise(across(c(hr, steps), list(mean = mean, sd = sd, max = max()), na.rm = T), .groups = "drop_last")
+summarised_actigraph_df
+
+# Combine data
+reduce(list(actigraph_df, summarised_actigraph_df), full_join)
+
+```
+
+```{r}
+activity_df$activity <-  factor(activity_df$activity, levels = c(1:12), labels = c("Low", "High", "Test", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
+```
+)
+
+
+
+```{r}
+# import data
+user_info_df <- import_multiple_files_new("info")
+saliva_df <- import_multiple_files_new("saliva")
+rr_df <- import_multiple_files_new("RR")
+actigraph_df <- import_multiple_files_new("Actigraph")
+
+# Summarise RR data
+summarised_rr_df <- rr_df %>% 
+  group_by(user_id, day) %>% # we group by two varibles
+  summarise(across(ibi_s, list(mean = mean, sd = sd), na.rm = T), .groups = "drop_last")
+
+# Mutate saliva data
+
+
+```
+

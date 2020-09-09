@@ -91,6 +91,19 @@ extract_data <- function(path){
                     `Melatonin NORM` = vroom::col_double()),
                   .name_repair = snakecase::to_snake_case)
   }
+
+  else if(stringr::str_detect(path, "user_info")){
+    data <- vroom::vroom(path,
+                         col_select = -1,
+                         col_types = vroom::cols(
+                           Gender = vroom::col_character(),
+                           Weight = vroom::col_double(),
+                           Height = vroom::col_double(),
+                           Age = vroom::col_double(),
+                         ),
+                         .name_repair = snakecase::to_snake_case)
+  }
+
   else if(stringr::str_detect(path, "RR")){
     data <- vroom::vroom(path,
                   col_select = -1,
@@ -119,6 +132,16 @@ extract_data <- function(path){
                     time = vroom::col_time(format = "")
                   ),
                   .name_repair = snakecase::to_snake_case)
+  }
+  else if(stringr::str_detect(path, "Activity")){
+    data <- vroom::vroom(path,
+                         col_select = -1,
+                         col_types = vroom::cols(
+                           Activity = col_double(),
+                           Start = col_time(format = ""),
+                           End = col_time(format = ""),
+                           Day = col_double()),
+                         .name_repair = snakecase::to_snake_case)
   }
 
   return(data)
