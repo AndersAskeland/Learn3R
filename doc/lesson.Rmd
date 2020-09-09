@@ -13,6 +13,7 @@ library(here)
 library(dplyr)
 library(purrr)
 library(fs)
+library(tidyverse)
 ```
 
 This is a example of how to do it. We first create a reference to the dir, look at the data using spec, and import is using vroom. We manually specify the different column types.
@@ -119,65 +120,48 @@ user_1_Actigraph_data
 The functions are pasted tp the function R script.
 
 My loops are bad. So we are going to use map to create a loop instead.
-
+# 4 - Load data 
+Data is loaded manually
 ```{r }
 # List (create a vector) of all files that containe (regexpr) specific string in a specified folder.
 user_info_files <- dir_ls(here("data-raw/mmash/"), 
                           regexp = "user_info.csv", 
                           recurse = TRUE)
 # Function
-user_info_list <- map_dfr(user_info_files, import_user_info, .id = "file_path_id")
+user_info_df <- map_dfr(user_info_files, import_user_info, .id = "file_path_id")
+```
+
+Data is loaded using a function
+```{r}
+# I have not made a function for this.
 ```
 
 
 ## Exercise: Map on the other datasets
-```{r}
-import_multiple_files <- function(file_pattern){
-  # Get files
-  file <- fs::dir_ls(here::here("data-raw/mmash/"), 
-                          regexp = file_pattern, 
-                          recurse = TRUE)
-  
-  # Get data for each file
-  import <- function(file_path){
-   data <- vroom::vroom(file = (file_path),
-                     col_select = -1,
-                     .name_repair = snakecase::to_snake_case)
-      return(data)
-
-  }
-
-  
-  # Create data
-  data <- purrr::map_dfr(file, import, .id = "file_path_id")
-
-  # Return
-  return(data)
-  }
-```
-
 
 A better way, where it the columns are controlled for. Is based on function extract_data which check the data
-```{r}
-import_multiple_files_new <- function(file_pattern){
-  # Get files
-  file <- fs::dir_ls(here::here("data-raw/mmash/"), 
-                          regexp = file_pattern, 
-                          recurse = TRUE)
 
-  # Create data
-  data <- purrr::map_dfr(file, extract_data, .id = "file_path_id")
-
-  # Return
-  return(data)
-  }
-
-```
 
 Here the datasets are imported
 ```{r}
 saliva_df <- import_multiple_files_new("saliva")
 rr_df <- import_multiple_files_new("RR")
 actigraph_df <- import_multiple_files_new("Actigraph")
+```
+
+
+# Using regex for user ID
+```{r}
+# Way one
+user_info_df %>% 
+  mutate(user_id = str_extract(file_path_id, "user_[:digit:][:digit:]?"), .keep = "unused")
+
+# Alternative
+user_info_df %>% 
+  mutate(user_id = str_extract(file_path_id, "user_[:digit:][:digit:]?")) %>% 
+  select(-file_path_id)
+
+# Do using function
+extract_user_id(df = user_info_df)
 ```
 

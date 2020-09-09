@@ -1,4 +1,3 @@
-
 #' Add numbers function
 #'
 #' @param num1 Number to be added 1
@@ -124,3 +123,49 @@ extract_data <- function(path){
 
   return(data)
 }
+
+
+import_multiple_files <- function(file_pattern){
+  # Get files
+  file <- fs::dir_ls(here::here("data-raw/mmash/"),
+                     regexp = file_pattern,
+                     recurse = TRUE)
+
+  # Get data for each file
+  import <- function(file_path){
+    data <- vroom::vroom(file = (file_path),
+                         col_select = -1,
+                         .name_repair = snakecase::to_snake_case)
+    return(data)
+
+  }
+
+
+  # Create data
+  data <- purrr::map_dfr(file, import, .id = "file_path_id")
+
+  # Return
+  return(data)
+}
+
+import_multiple_files_new <- function(file_pattern){
+  # Get files
+  file <- fs::dir_ls(here::here("data-raw/mmash/"),
+                     regexp = file_pattern,
+                     recurse = TRUE)
+
+  # Create data
+  data <- purrr::map_dfr(file, extract_data, .id = "file_path_id")
+
+  # Return
+  return(data)
+}
+
+extract_user_id <- function(df, column = file_path_id){
+data <- df %>%
+    dplyr::mutate(user_id = stringr::str_extract({{column}}, "user_[:digit:][:digit:]?")) %>%
+    dplyr::select(-{{column}})
+
+return(data)
+}
+
