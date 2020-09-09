@@ -368,11 +368,8 @@ summary {
 </div>
 
 
-<div id="importing-my-data-usring-vroom" class="section level1">
-<h1>1. Importing my data usring vroom</h1>
-<p>As I understand vroom is just an automated readr.</p>
 <div id="split-apply-combine" class="section level2">
-<h2>Split-Apply-Combine</h2>
+<h2>1 - Split-Apply-Combine</h2>
 <p>This s technique for taking a dataset. Splitting it up for something (i.e. male/female). Doing something to it, and bringing it back.</p>
 <ul>
 <li>Split = Split data into groups</li>
@@ -386,12 +383,6 @@ summary {
     list(mean = mean, sd = sd, max = max, min = min),
     na.rm = T
   ))</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to max; returning -Inf</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to min; returning Inf</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to max; returning -Inf</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to min; returning Inf</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to max; returning -Inf</code></pre>
-<pre><code>## Warning in fn(col, ...): no non-missing arguments to min; returning Inf</code></pre>
 <pre><code>## # A tibble: 4 x 13
 ##     day age_mean age_sd age_max age_min weight_mean weight_sd weight_max
 ##   &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;
@@ -403,7 +394,7 @@ summary {
 ## #   height_sd &lt;dbl&gt;, height_max &lt;dbl&gt;, height_min &lt;dbl&gt;</code></pre>
 </div>
 <div id="pivot-longer" class="section level2">
-<h2>Pivot longer</h2>
+<h2>2 - Pivot longer</h2>
 <pre class="r"><code>mmash %&gt;% 
   select(-samples) %&gt;%
   pivot_longer(c(-user_id, -day, -gender))</code></pre>
@@ -421,7 +412,163 @@ summary {
 ##  9 M      user_1      1 hr_sd          1.30e+1
 ## 10 M      user_1      1 steps_mean     2.64e-1
 ## # … with 507 more rows</code></pre>
+<p>Use pivot_longer() after the group_by() and summarise() we did previously:</p>
+<pre class="r"><code># Data
+mmash %&gt;% 
+    group_by(day) %&gt;% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    ))</code></pre>
+<pre><code>## # A tibble: 4 x 5
+##     day age_mean age_sd weight_mean weight_sd
+##   &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;       &lt;dbl&gt;     &lt;dbl&gt;
+## 1   -29    NaN    NA          NaN        NA  
+## 2     1     26.0   7.28        75.3      13.1
+## 3     2     26.0   7.28        75.3      13.1
+## 4    NA     28    NA           70        NA</code></pre>
+<pre class="r"><code># Pivot
+mmash %&gt;% 
+    group_by(day) %&gt;% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    )) %&gt;%
+  pivot_longer(ends_with(c(&quot;mean&quot;, &quot;sd&quot;)), 
+               names_to = c(&quot;names&quot;, &quot;.value&quot;),
+               names_sep = &quot;_&quot;)</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##     day names   mean    sd
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1   -29 age    NaN   NA   
+## 2   -29 weight NaN   NA   
+## 3     1 age     26.0  7.28
+## 4     1 weight  75.3 13.1 
+## 5     2 age     26.0  7.28
+## 6     2 weight  75.3 13.1 
+## 7    NA age     28   NA   
+## 8    NA weight  70   NA</code></pre>
 </div>
+<div id="pibot-wider" class="section level1">
+<h1>Pibot wider</h1>
+<p>We can actually utilize pivot_longer function of naming stuff, to enable us to more easially use pivot_wider.</p>
+<pre class="r"><code>mmash %&gt;% 
+    group_by(day) %&gt;% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    )) %&gt;%
+  pivot_longer(ends_with(c(&quot;mean&quot;, &quot;sd&quot;)),
+               names_to = c(&quot;names&quot;, &quot;summary_statistic&quot;),
+               names_sep = &quot;_&quot;) %&gt;%
+  pivot_wider(names_from = summary_statistic,
+              values_from = value)</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##     day names   mean    sd
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1   -29 age    NaN   NA   
+## 2   -29 weight NaN   NA   
+## 3     1 age     26.0  7.28
+## 4     1 weight  75.3 13.1 
+## 5     2 age     26.0  7.28
+## 6     2 weight  75.3 13.1 
+## 7    NA age     28   NA   
+## 8    NA weight  70   NA</code></pre>
+<p>Do it using a funciton</p>
+<pre class="r"><code>tidy_summarize_by_day(mmash, c(&quot;age&quot;, &quot;weight&quot;))</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##     day names   mean    sd
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1   -29 age    NaN   NA   
+## 2   -29 weight NaN   NA   
+## 3     1 age     26.0  7.28
+## 4     1 weight  75.3 13.1 
+## 5     2 age     26.0  7.28
+## 6     2 weight  75.3 13.1 
+## 7    NA age     28   NA   
+## 8    NA weight  70   NA</code></pre>
+<pre class="r"><code>tidy_summarize_by_day(mmash, c(age, weight))</code></pre>
+<pre><code>## # A tibble: 8 x 4
+##     day names   mean    sd
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt;
+## 1   -29 age    NaN   NA   
+## 2   -29 weight NaN   NA   
+## 3     1 age     26.0  7.28
+## 4     1 weight  75.3 13.1 
+## 5     2 age     26.0  7.28
+## 6     2 weight  75.3 13.1 
+## 7    NA age     28   NA   
+## 8    NA weight  70   NA</code></pre>
+<p>Non-standard evaluation is the thing with {{}}</p>
+</div>
+<div id="you-can-make-a-tables-in-html-using-the-kable-package" class="section level1">
+<h1>You can make a tables in HTML using the kable package</h1>
+<pre class="r"><code>tidy_summarize_by_day(mmash, c(age, weight)) %&gt;% 
+  knitr::kable(caption = &quot;Nice table&quot;)</code></pre>
+<table>
+<caption>Nice table</caption>
+<thead>
+<tr class="header">
+<th align="right">day</th>
+<th align="left">names</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">-29</td>
+<td align="left">age</td>
+<td align="right">NaN</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="right">-29</td>
+<td align="left">weight</td>
+<td align="right">NaN</td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">age</td>
+<td align="right">25.95238</td>
+<td align="right">7.28338</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">weight</td>
+<td align="right">75.28571</td>
+<td align="right">13.05428</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">age</td>
+<td align="right">25.95238</td>
+<td align="right">7.28338</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">weight</td>
+<td align="right">75.28571</td>
+<td align="right">13.05428</td>
+</tr>
+<tr class="odd">
+<td align="right">NA</td>
+<td align="left">age</td>
+<td align="right">28.00000</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="right">NA</td>
+<td align="left">weight</td>
+<td align="right">70.00000</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 

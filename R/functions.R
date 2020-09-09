@@ -193,3 +193,20 @@ data <- df %>%
 return(data)
 }
 
+tidy_summarize_by_day <- function(data, columns){
+  data %>%
+    group_by(day) %>%
+    summarise(across(
+      {{columns}},
+      list(mean = mean, sd = sd),
+      na.rm = TRUE
+    )) %>%
+    pivot_longer(ends_with(c("mean", "sd")),
+                 names_to = c("names", "summary_statistic"),
+                 names_sep = "_") %>%
+    pivot_wider(names_from = summary_statistic,
+                values_from = value)
+}
+
+
+

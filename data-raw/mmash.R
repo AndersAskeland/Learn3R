@@ -68,3 +68,5 @@ usethis::use_data(mmash, overwrite = TRUE)
 
 # Disable parallel processing
 plan(sequential)
+
+

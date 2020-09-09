@@ -6,9 +6,6 @@ output:
   pdf_document: default
 ---
 
-# 1. Importing my data usring vroom
-As I understand vroom is just an automated readr. 
-
 ```{r setup, include=FALSE}
 library(vroom)
 library(here)
@@ -20,14 +17,14 @@ options(dplyr.summarise.inform = FALSE)
 devtools::load_all()
 ```
 
-## Split-Apply-Combine
+## 1 - Split-Apply-Combine
 This s technique for taking a dataset. Splitting it up for something (i.e. male/female). Doing something to it, and bringing it back. 
 
 * Split = Split data into groups
 * Apply = you do something to data based on the split
 * Combine = Combine the data back up
 
-```{r}
+```{r, warning = FALSE}
 mmash %>% 
   group_by(day) %>% 
   summarise(across(
@@ -37,7 +34,7 @@ mmash %>%
   ))
 ```
 
-## Pivot longer
+## 2 - Pivot longer
 
 ```{r}
 mmash %>% 
@@ -64,6 +61,38 @@ mmash %>%
         list(mean = mean, sd = sd), 
         na.rm = TRUE
     )) %>%
-  pivot_longer(ends_with(c("mean", "sd")))
+  pivot_longer(ends_with(c("mean", "sd")), 
+               names_to = c("names", ".value"),
+               names_sep = "_")
+```
+# Pibot wider
+We can actually utilize pivot_longer function of naming stuff, to enable us to more easially use pivot_wider.
+```{r}
+mmash %>% 
+    group_by(day) %>% 
+    summarise(across(
+        c(age, weight),
+        list(mean = mean, sd = sd), 
+        na.rm = TRUE
+    )) %>%
+  pivot_longer(ends_with(c("mean", "sd")),
+               names_to = c("names", "summary_statistic"),
+               names_sep = "_") %>%
+  pivot_wider(names_from = summary_statistic,
+              values_from = value)
+```
+
+Do it using  a funciton
+```{r}
+tidy_summarize_by_day(mmash, c("age", "weight"))
+tidy_summarize_by_day(mmash, c(age, weight))
+
+```
+Non-standard evaluation is the thing with {{}}
+
+# You can make a tables in HTML using the kable function in the knitr package
+```{r}
+tidy_summarize_by_day(mmash, c(age, weight)) %>% 
+  knitr::kable(caption = "Nice table")
 ```
 
