@@ -165,7 +165,7 @@ import_multiple_files <- function(file_pattern){
 
 
   # Create data
-  data <- purrr::map_dfr(file, import, .id = "file_path_id")
+  data <- furrr::future_map_dfr(file, import, .id = "file_path_id")
 
   # Return
   return(data)
@@ -178,7 +178,7 @@ import_multiple_files_new <- function(file_pattern){
                      recurse = TRUE)
 
   # Create data
-  data <- purrr::map_dfr(file, extract_data, .id = "file_path_id") %>%
+  data <- furrr::future_map_dfr(file, extract_data, .id = "file_path_id") %>%
     extract_user_id()
 
   # Return

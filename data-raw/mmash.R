@@ -3,7 +3,14 @@
 library(here) # Point to wd
 library(fs) # Delete stuff
 library(tidyverse)
+library(furrr)
 devtools::load_all() # Load this as a package
+
+
+# Enable parallel processing - To run multisession using load_all the package must be installed.
+# You can create namespace with commands + shift + D and install/build command + shift + b.
+# This actually installs it.
+plan(multisession)
 
 # Download data
 mmash_link <- "https://physionet.org/static/published-projects/mmash/multilevel-monitoring-of-activity-and-sleep-in-healthy-people-1.0.0.zip"
@@ -58,3 +65,6 @@ mmash <- reduce(list(user_info_df, saliva_with_day_df, summarised_rr_df, summari
 
 
 usethis::use_data(mmash, overwrite = TRUE)
+
+# Disable parallel processing
+plan(sequential)

@@ -1,7 +1,9 @@
 ---
 title: "Lesson"
 author: "Anders"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 # 1. Importing my data usring vroom
@@ -11,7 +13,36 @@ As I understand vroom is just an automated readr.
 library(vroom)
 library(here)
 library(dplyr)
-library(margrit)
+library(magrittr)
 library(fs)
 library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+devtools::load_all()
 ```
+
+## Split-Apply-Combine
+This s technique for taking a dataset. Splitting it up for something (i.e. male/female). Doing something to it, and bringing it back. 
+
+* Split = Split data into groups
+* Apply = you do something to data based on the split
+* Combine = Combine the data back up
+
+```{r}
+mmash %>% 
+  group_by(day) %>% 
+  summarise(across(
+    c(age, weight, height),
+    list(mean = mean, sd = sd, max = max, min = min),
+    na.rm = T
+  ))
+```
+
+## Pivot longer
+
+```{r}
+mmash %>% 
+  select(-samples) %>%
+  pivot_longer(c(-user_id, -day, -gender))
+```
+
+
