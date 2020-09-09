@@ -1,12 +1,9 @@
-## code to prepare `mmash` dataset goes here
-
-usethis::use_data(mmash, overwrite = TRUE)
 
 # load packages
 library(here) # Point to wd
 library(fs) # Delete stuff
 library(tidyverse)
-devtools::load_all()
+devtools::load_all() # Load this as a package
 
 # Download data
 mmash_link <- "https://physionet.org/static/published-projects/mmash/multilevel-monitoring-of-activity-and-sleep-in-healthy-people-1.0.0.zip"
@@ -14,24 +11,24 @@ mmash_link <- "https://physionet.org/static/published-projects/mmash/multilevel-
 # download.file(mmash_link, destfile = here("data-raw/mmash-data.zip"))
 
 # Add data to gitignore
-usethis::use_git_ignore(("data-raw/mmash-data.zip"))
-usethis::use_git_ignore(("data-raw/mmash/"))
-
-# Unzip
-unzip(here("data-raw/mmash-data.zip"),
-      exdir = here('data-raw/'),
-      junkpaths = T)
-
-unzip(here("data-raw/MMASH.zip"),
-      exdir = here("data-raw/"))
-
-# Delete uneeded files
-file_delete(here(c("data-raw/MMASH.zip",
-                   "data-raw/SHA256SUMS.txt",
-                   "data-raw/LICENSE.txt")))
-
-# Rename data file
-file_move(here("data-raw/DataPaper/"), here("data-raw/mmash/"))
+# usethis::use_git_ignore(("data-raw/mmash-data.zip"))
+# usethis::use_git_ignore(("data-raw/mmash/"))
+#
+# # Unzip
+# unzip(here("data-raw/mmash-data.zip"),
+#       exdir = here('data-raw/'),
+#       junkpaths = T)
+#
+# unzip(here("data-raw/MMASH.zip"),
+#       exdir = here("data-raw/"))
+#
+# # Delete uneeded files
+# file_delete(here(c("data-raw/MMASH.zip",
+#                    "data-raw/SHA256SUMS.txt",
+#                    "data-raw/LICENSE.txt")))
+#
+# # Rename data file
+# file_move(here("data-raw/DataPaper/"), here("data-raw/mmash/"))
 
 # Open files
 user_info_df <- import_multiple_files_new("info")
@@ -54,8 +51,10 @@ saliva_with_day_df <- saliva_df %>%
 # Summarise actigraph (hr and steps)
 summarised_actigraph_df <- actigraph_df %>%
   group_by(user_id, day) %>% # we group by two varibles
-  summarise(across(c(hr, steps), list(mean = mean, sd = sd, max = max()), na.rm = T), .groups = "drop_last")
+  summarise(across(c(hr, steps), list(mean = mean, sd = sd), na.rm = T), .groups = "drop_last")
 
 # Group
-mmash <- reduce(list(user_info_df, saliva_with_day_df, summarised_rr_df), full_join)
+mmash <- reduce(list(user_info_df, saliva_with_day_df, summarised_rr_df, summarised_actigraph_df), full_join)
 
+
+usethis::use_data(mmash, overwrite = TRUE)
